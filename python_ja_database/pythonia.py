@@ -167,7 +167,7 @@ for y in sqlhaku:
 
 app = Flask(__name__)
 @app.route('/start/<nimi>')
-def start(nimi):
+def start(nimi, pelaaja, peli):
     pelaaja.nimi = nimi
     pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
     vastaus = {
