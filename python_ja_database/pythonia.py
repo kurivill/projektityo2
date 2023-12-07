@@ -3,7 +3,7 @@ from yhteys import yhteys
 from flask import Flask, request, Response
 import json
 import random
-# Eli alla pelaaja-olion konstruktori. Voi tehdä metodeja lisää ja muokata.
+
 class Player:
     def __init__(self):
         self.nimi = ""
@@ -22,7 +22,10 @@ class Game:
         self.listaindeksi = 0
         self.vihjeet = listasanakirja
 
-
+"""Yllä olevat oliot ovat datan ylläpitämistä varten. Käytönnössä kaikki pelissä esiintyvät
+muuttujat ovat osa olioita.
+Tämä sen takia, että pelin voisi tallentaa jossain vaiheessa, ja funktioiden parametrit ovat olioita.
+"""
 
 # ALla kaikki sanakirjarakenteet, eli vihjeet, maat ja lentokentät
 
@@ -87,28 +90,32 @@ country_names = ["luxembourg", "norway", "poland", "sweden", "latvia", "lithuani
                  "ireland", "croatia", "france", "greece", "italy", "slovenia", "czech republic", "malta", "hungary", "austria", "portugal", "romania"
                  "switzerland", "belarus", "serbia", "ukraine", "montenegro", "russia", "slovakia", "denmark" , "north macedonia"]
 
-# ALla olevaa funktiota muutettu hieman alkuperäisestä. Pitää vielä ottaa suomi pois sql-hausta
+
+# Yllä kaikki tietorakenteet. Muutetaan pääohjelmassa järkevämpään muotoon olioiden ominaisuuksiksi
+# ALla olevaa funktiota muutettu hieman alkuperäisestä. Jättää Suomen pois
+
+
 def maat():
     sql = "SELECT LOWER(country.name), airport.name FROM country, airport"
-    sql += " WHERE airport.iso_country = country.iso_country AND country.continent = 'EU' AND airport.type = 'large_airport' GROUP BY country.name"
+    sql += " WHERE airport.iso_country = country.iso_country AND country.iso_country != 'FI' AND country.continent = 'EU' AND airport.type = 'large_airport' GROUP BY country.name"
     kursori = yhteys.cursor(buffered=True)
     kursori.execute(sql)
     tulos = kursori.fetchall()
     return tulos
 
-# ALla hieman muutettu versio haevihje-funktiosta. Palauttaa vihjeen stringinä
+# ALla hieman muutettu versio haevihje-funktiosta. Palauttaa vihjeen stringinä, koska pitää siirtää sivulle json.
 
 def haevihje(pelaaja, peli):
-    tuloste = ""
-    for a in peli.maat:
-        if a == pelaaja.tavoitemaa:
+    tuloste = "" # Tyhjä tuloste
+    for a in peli.maat: # Käydään lista maista läpi. TÄhän on varmaan parempi tapa olemassa.
+        if a == pelaaja.tavoitemaa: # Jos maa on tavoitemaa, siirrytään suoritukseen
             # tuloste = (countries[päämäärä][vihjeindeksi])
-            tuloste = peli.vihjeet[pelaaja.tavoitemaa][pelaaja.vihjeindeksi]
-            pelaaja.vihjeindeksi += 1
-            pelaaja.rahat -= 100
-    return tuloste
+            tuloste = peli.vihjeet[pelaaja.tavoitemaa][pelaaja.vihjeindeksi] # Tallettaa vihjeen tuloste-muuttujaan
+            pelaaja.vihjeindeksi += 1 # Vihjeindeksi kasvaa, kun oikea vihje tallessa
+            pelaaja.rahat -= 100 # Rahaa lähtee
+    return tuloste # Palauttaa vihjeen stringinä
 
-# TÄtä voi käyttää pohjana, kun tehdään uutta lentokilsojen laskemista
+# TÄtä voi käyttää pohjana, kun tehdään uutta lentokilsojen laskemista.
 
 """def calculateDistance(port1, port2):
     search1 = f"SELECT latitude_deg, longitude_deg FROM airport"
@@ -127,8 +134,7 @@ def haevihje(pelaaja, peli):
 
 
 
-#Yllä siis alustava versio ekasta flaski-funktiosta. Tämä siis asettaa pelaaja-oliolle nimen, ja paluttaa sitten
-# dataa json-muodossa
+
 
 
 
@@ -138,9 +144,8 @@ def haevihje(pelaaja, peli):
 
 
 pelaaja = Player()
-peli = Game(countries)
+peli = Game(countries) # Luodaan taustapalvelun käynnistyessä peli- ja pelaaja-oliot
 
-#Tehdään pelaaja-olio heti alussa. EI aseteta nimeä, ja muuu data on lähtöarvoja
 
 
 sqlhaku = maat()
@@ -154,13 +159,11 @@ for y in sqlhaku:
     peli.lentokentat.append(y[1])
 
 
-# Yllä olevat 8 riviä hakee ne maat ja lentokentät, ja järjestää randomisti kahteen eri listaan
+# Yllä olevat 6 riviä hakee ne maat ja lentokentät, ja järjestää randomisti kahteen eri listaan
 # Listat ovat Game-olion sisällä, jotta ne olisi helpompi tallentaa myöhemmin
 
+# Alla pelin aloitusfunktio. Saadaan sivulta pelaajan nimi, ja asetetaan tavoitemaa. Palautetaan tarvittava data
 
-# Ylläolevan rivin jälkeen on siis pelaaja- ja peli-oliot, joiden sisällä on tarvittavat muuttujat.
-# Maat ja lentokentät ovat peli-olion muuttujina listoina. Pitää siis viitata kaikessa
-# Pelaaja-oliolle on asetettu ensimmäinen tavoitemaa.
 
 app = Flask(__name__)
 @app.route('/start/<nimi>')
@@ -168,11 +171,12 @@ def start(nimi):
     pelaaja.nimi = nimi
     pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
     vastaus = {
+        "nimi": pelaaja.nimi,
         "rahat": pelaaja.rahat,
         "sijainti": pelaaja.sijaintimaa,
-        "kohdemaa": pelaaja.tavoitemaa
+        "kohdemaa": pelaaja.tavoitemaa # Tämä saattaa olla turha
     }
-    return vastaus
+    return vastaus # Palautetaan vastaus json-muodossa.
 """
 @app.route('/vihje/<location>')
 def haevihje(location):
@@ -196,11 +200,15 @@ def vihjeenosto(pelaaja, peli):
     }
     return vastaus
 
+# Ylläoleva funktio hakee vihjeen, ja palauttaa sen ja päivittyneen rahatilanteen json-muodossa. Muu nettisivulla oleva
+# tieto ei päivity
+
 @app.route('/veikkaa/<veikkaus>')
 def veikkaa(pelaaja, peli, veikkaus):
     if pelaaja.tavoitemaa == veikkaus:
         pelaaja.rahat += 100
         pelaaja.vihjeindeksi = 0
+        kayty = pelaaja.tavoitemaa
         pelaaja.sijaintimaa = pelaaja.tavoitemaa
         pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
         peli.listaindeksi += 1
@@ -212,7 +220,8 @@ def veikkaa(pelaaja, peli, veikkaus):
             "sijainti": pelaaja.sijaintimaa,
             "lentokenttä": pelaaja.sijaintiairport,
             "tavoitemaa": pelaaja.tavoitemaa,
-            "lentokilometrit": pelaaja.lentokm
+            "lentokilometrit": pelaaja.lentokm,
+            "käyty maa": kayty
 
         }
         return vastaus
@@ -254,8 +263,7 @@ def veikkaa(pelaaja, peli, veikkaus):
 
 
 
-# yLlä flask-funktio, jonka pitäisi palauttaa json-muodossa se vihje liittyen kohdemaahan.
-# Pitänee muuttaa, parametria ei tarvitse. Nyt ei jaksa
+# Yllä oleva spagetti saa parametrina pelaajan veikkauksen, ja sen perusteella palauttaa dataa sivulle. Toimii teoriassa
 
 if __name__ == '__main__':
     app.run(use_reloader=True, host='127.0.0.1', port=3000)

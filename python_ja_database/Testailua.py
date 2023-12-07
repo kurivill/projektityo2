@@ -84,7 +84,7 @@ country_names = ["luxembourg", "norway", "poland", "sweden", "latvia", "lithuani
 
 def maat():
     sql = "SELECT LOWER(country.name), airport.name FROM country, airport"
-    sql += " WHERE airport.iso_country = country.iso_country AND country.continent = 'EU' AND airport.type = 'large_airport' GROUP BY country.name"
+    sql += " WHERE airport.iso_country = country.iso_country AND country.iso_country != 'FI' AND country.continent = 'EU' AND airport.type = 'large_airport' GROUP BY country.name"
     kursori = yhteys.cursor(buffered=True)
     kursori.execute(sql)
     tulos = kursori.fetchall()
@@ -161,9 +161,11 @@ vihje = haevihje(pelaaja, peli)
 print(vihje)
 print("")
 print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
-print(f"Pelaajan vihjeindeksi: {pelaaja.vihjeindeksi}")
 
-json = vihjeenosto(pelaaja, peli)
-print(json)
+indeksi = 0
+while indeksi < len(peli.maat):
+    print(peli.maat[indeksi])
+    indeksi += 1
 
+print(len(peli.maat))
 
