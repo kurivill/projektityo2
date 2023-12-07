@@ -111,7 +111,6 @@ def vihjeenosto(pelaaja, peli):
 
 def startti(pelaaja, peli):
     pelaaja.nimi = "Ville"
-    pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
     sqlhaku = maat()
     random.shuffle(sqlhaku)
     # maalista = []
@@ -121,6 +120,7 @@ def startti(pelaaja, peli):
 
     for y in sqlhaku:
         peli.lentokentat.append(y[1])
+    pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
 
 
 def veikkaa(pelaaja, peli):
@@ -158,15 +158,11 @@ peli = Game(countries)
 
 startti(pelaaja, peli)
 print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
-vihje = haevihje(pelaaja, peli)
+print(f"{peli.maat[5]}, {peli.lentokentat[5]}, {peli.listaindeksi}, {peli.vihjeet[pelaaja.tavoitemaa][0]}")
+"""vihje = haevihje(pelaaja, peli)
 print(vihje)
 print("")
-print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
+print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")"""
 
-indeksi = 0
-while indeksi < len(peli.maat):
-    print(peli.maat[indeksi])
-    indeksi += 1
 
-print(len(peli.maat))
 
