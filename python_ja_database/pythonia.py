@@ -148,7 +148,7 @@ peli = Game(countries) # Luodaan taustapalvelun käynnistyessä peli- ja pelaaja
 
 
 
-sqlhaku = maat()
+"""sqlhaku = maat()
 random.shuffle(sqlhaku)
 # maalista = []
 # lentokenttälista = []
@@ -156,7 +156,7 @@ for x in sqlhaku:
     peli.maat.append(x[0])
 
 for y in sqlhaku:
-    peli.lentokentat.append(y[1])
+    peli.lentokentat.append(y[1])"""
 
 
 # Yllä olevat 6 riviä hakee ne maat ja lentokentät, ja järjestää randomisti kahteen eri listaan
@@ -168,6 +168,12 @@ for y in sqlhaku:
 app = Flask(__name__)
 @app.route('/start/<nimi>')
 def start(nimi, pelaaja, peli):
+    sqlhaku = maat()
+    random.shuffle(sqlhaku)
+    for x in sqlhaku:
+        peli.maat.append(x[0])
+    for y in sqlhaku:
+        peli.lentokentat.append(y[1])
     pelaaja.nimi = nimi
     pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
     vastaus = {
@@ -258,6 +264,11 @@ def veikkaa(pelaaja, peli, veikkaus):
             }
 
             return vastaus
+
+@app.route('/save')
+def tallenna(pelaaja, peli):
+    # Eli tähän tulee sql-update-lause, joka tallentaa nykyisen pelitilanteen sql-tietokantaan.
+
 
 
 
