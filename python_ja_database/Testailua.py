@@ -1,4 +1,3 @@
-from geopy.distance import geodesic
 from yhteys import yhteys
 from flask import Flask, request, Response
 import json
@@ -21,11 +20,6 @@ class Game:
         self.lentokentat = []
         self.listaindeksi = 0
         self.vihjeet = listasanakirja
-
-
-
-# ALla kaikki sanakirjarakenteet, eli vihjeet, maat ja lentokentät
-
 
 
 
@@ -87,7 +81,7 @@ country_names = ["luxembourg", "norway", "poland", "sweden", "latvia", "lithuani
                  "ireland", "croatia", "france", "greece", "italy", "slovenia", "czech republic", "malta", "hungary", "austria", "portugal", "romania"
                  "switzerland", "belarus", "serbia", "ukraine", "montenegro", "russia", "slovakia", "denmark" , "north macedonia"]
 
-# ALla olevaa funktiota muutettu hieman alkuperäisestä. Pitää vielä ottaa suomi pois sql-hausta
+
 def maat():
     sql = "SELECT LOWER(country.name), airport.name FROM country, airport"
     sql += " WHERE airport.iso_country = country.iso_country AND country.continent = 'EU' AND airport.type = 'large_airport' GROUP BY country.name"
@@ -96,7 +90,6 @@ def maat():
     tulos = kursori.fetchall()
     return tulos
 
-# ALla hieman muutettu versio haevihje-funktiosta. Palauttaa vihjeen stringinä
 
 def haevihje(pelaaja, peli):
     tuloste = ""
@@ -108,40 +101,48 @@ def haevihje(pelaaja, peli):
             pelaaja.rahat -= 100
     return tuloste
 
-# TÄtä voi käyttää pohjana, kun tehdään uutta lentokilsojen laskemista
 
-"""def calculateDistance(port1, port2):
-    search1 = f"SELECT latitude_deg, longitude_deg FROM airport"
-    search1 += f" WHERE name = '{port1}' AND type = 'large_airport';"
-    search2 = f"SELECT latitude_deg, longitude_deg FROM airport"
-    search2 += f" WHERE name = '{port2}' AND type = 'large_airport';"
-    kursori = yhteys.cursor()
-    kursori.execute(search1)
-    tulos1 = kursori.fetchone()
-    kursori.execute(search2)
-    tulos2 = kursori.fetchone()
-    distance = geodesic(tulos1, tulos2).km
-    return distance"""
+def vihjeenosto(pelaaja, peli):
+    vihje = haevihje(pelaaja, peli)
+    vastaus = {
+        "vihje": vihje
+    }
+    return vastaus
+
+def startti(pelaaja, peli):
+    pelaaja.nimi = "Ville"
+    pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
 
 
+def veikkaa(pelaaja, peli):
+    veikkaus = input("Veikkaa maata: ")
+    if pelaaja.tavoitemaa == veikkaus:
+        print("Congrats. You guessed the right country")
+        print("Flying...")
+        pelaaja.rahat += 100
+        peli.listaindeksi += 1
+        pelaaja.sijaintimaa = pelaaja.tavoitemaa
+        pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+        pelaaja.vihjeindeksi = 0
 
-
-
-#Yllä siis alustava versio ekasta flaski-funktiosta. Tämä siis asettaa pelaaja-oliolle nimen, ja paluttaa sitten
-# dataa json-muodossa
-
-
-
-
-
+    else:
+        print("Sorry, wrong guess. deducting 100 euros")
+        pelaaja.rahat -= 100
+        if pelaaja.vihjeindeksi <= 1:
+            uusvihje = haevihje(pelaaja, peli)
+            print(uusvihje)
+        else:
+            print("You have ran out of hints, flying to your destination")
+            pelaaja.sijaintimaa = pelaaja.tavoitemaa
+            peli.listaindeksi += 1
+            pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+            pelaaja.rahat -= 100
+            pelaaja.vihjeindeksi = 0
 
 
 
 pelaaja = Player()
 peli = Game(countries)
-
-#Tehdään pelaaja-olio heti alussa. EI aseteta nimeä, ja muuu data on lähtöarvoja
-
 
 sqlhaku = maat()
 random.shuffle(sqlhaku)
@@ -154,136 +155,15 @@ for y in sqlhaku:
     peli.lentokentat.append(y[1])
 
 
-# Yllä olevat 8 riviä hakee ne maat ja lentokentät, ja järjestää randomisti kahteen eri listaan
-# Listat ovat Game-olion sisällä, jotta ne olisi helpompi tallentaa myöhemmin
+startti(pelaaja, peli)
+print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
+vihje = haevihje(pelaaja, peli)
+print(vihje)
+print("")
+print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
+print(f"Pelaajan vihjeindeksi: {pelaaja.vihjeindeksi}")
 
-
-# Ylläolevan rivin jälkeen on siis pelaaja- ja peli-oliot, joiden sisällä on tarvittavat muuttujat.
-# Maat ja lentokentät ovat peli-olion muuttujina listoina. Pitää siis viitata kaikessa
-# Pelaaja-oliolle on asetettu ensimmäinen tavoitemaa.
-
-app = Flask(__name__)
-@app.route('/start/<nimi>')
-def start(nimi):
-    pelaaja.nimi = nimi
-    pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
-    vastaus = {
-        "rahat": pelaaja.rahat,
-        "sijainti": pelaaja.sijaintimaa,
-        "kohdemaa": pelaaja.tavoitemaa
-    }
-    return vastaus
-"""
-@app.route('/vihje/<location>')
-def haevihje(location):
-    päämäärä = location
-    vihje = haevihje(päämäärä)
-    vastaus = {
-        "vihje": vihje
-    }
-    return vastaus
-    
-    
-"""
-
-@app.route('/vihje')
-def vihjeenosto(pelaaja, peli):
-    vihje = haevihje(pelaaja, peli)
-    vastaus = {
-        "vihje": vihje,
-        "rahat": pelaaja.rahat
-
-    }
-    return vastaus
-
-@app.route('/veikkaa/<veikkaus>')
-def veikkaa(pelaaja, peli, veikkaus):
-    if pelaaja.tavoitemaa == veikkaus:
-        pelaaja.rahat += 100
-        pelaaja.vihjeindeksi = 0
-        pelaaja.sijaintimaa = pelaaja.tavoitemaa
-        pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
-        peli.listaindeksi += 1
-        pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
-
-        vastaus = {
-            "Vastaus": "Oikein",
-            "Rahat": pelaaja.rahat,
-            "sijainti": pelaaja.sijaintimaa,
-            "lentokenttä": pelaaja.sijaintiairport,
-            "tavoitemaa": pelaaja.tavoitemaa,
-            "lentokilometrit": pelaaja.lentokm
-
-        }
-        return vastaus
-
-    else:
-        if pelaaja.vihjeindeksi == 2:
-            pelaaja.sijaintimaa = pelaaja.tavoitemaa
-            pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
-            pelaaja.rahat -= 100
-            pelaaja.vihjeindeksi = 0
-            peli.listaindeksi += 1
-            pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
-
-            vastaus = {
-                "Vastaus": "Väärin",
-                "Vihjeet": "Loppu",
-                "Rahat": pelaaja.rahat,
-                "sijainti": pelaaja.sijaintimaa,
-                "lentokenttä": pelaaja.sijaintiairport,
-                "tavoitemaa": pelaaja.tavoitemaa,
-                "lentokilometrit": pelaaja.lentokm
-
-            }
-            return vastaus
-
-        else:
-            vihje = haevihje(pelaaja, peli)
-            vastaus = {
-                "Vastaus": "Väärin",
-                "Vihjeitä": "Jäljellä",
-                "Rahat": pelaaja.rahat,
-                "Vihje": vihje
-
-            }
-
-            return vastaus
-
-
-
-
-
-# yLlä flask-funktio, jonka pitäisi palauttaa json-muodossa se vihje liittyen kohdemaahan.
-# Pitänee muuttaa, parametria ei tarvitse. Nyt ei jaksa
-
-if __name__ == '__main__':
-    app.run(use_reloader=True, host='127.0.0.1', port=3000)
-
-
-
-
-"""Eli peliä on muutettu niin, että pyritään pitämään olioissa (pelaaja ja peli) kaikki data. 
-Tällä hetkellä valmiina on start-flask, ostavihje-flask ja veikkaa-flask. Pelin pitäisi ainakin paperilla
-toimia näillä funktioilla. 
-
-Tällä hetkellä puuttuu vielä ainakin random event peliin, ja pelin tallennus. Periaatteessa se tallennus
-on suht yksinkertainen, mutta työläs. Databasea pitää muokata hieman sen toimimista varten
-(Pitää siis lisätä game-taulu, johon päivitetään peli-olion tiedot.)
-
-Lisäksi puuttuu kokonaan se lentokilometrien laskeminen. Vanhan funktion pitäisi toimia pienillä muokkauksilla.
-
-Bugeja todennäköisesti tulee löytymään, kun kokeillaan frontin ja backendin yhdistämistä, mutta life is life.
-
-"""
-
-
-
-
-
-
-
-
-
+json = vihjeenosto(pelaaja, peli)
+print(json)
 
 
