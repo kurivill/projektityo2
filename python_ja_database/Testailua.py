@@ -112,6 +112,15 @@ def vihjeenosto(pelaaja, peli):
 def startti(pelaaja, peli):
     pelaaja.nimi = "Ville"
     pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+    sqlhaku = maat()
+    random.shuffle(sqlhaku)
+    # maalista = []
+    # lentokenttälista = []
+    for x in sqlhaku:
+        peli.maat.append(x[0])
+
+    for y in sqlhaku:
+        peli.lentokentat.append(y[1])
 
 
 def veikkaa(pelaaja, peli):
@@ -144,15 +153,7 @@ def veikkaa(pelaaja, peli):
 pelaaja = Player()
 peli = Game(countries)
 
-sqlhaku = maat()
-random.shuffle(sqlhaku)
-# maalista = []
-# lentokenttälista = []
-for x in sqlhaku:
-    peli.maat.append(x[0])
 
-for y in sqlhaku:
-    peli.lentokentat.append(y[1])
 
 
 startti(pelaaja, peli)
