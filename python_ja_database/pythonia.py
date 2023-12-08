@@ -270,10 +270,10 @@ def veikkaa(pelaaja, peli, veikkaus):
 
             return vastaus
 
-@app.route('/save')
+""""@app.route('/save')
 def tallenna(pelaaja, peli):
     # Eli tähän tulee sql-update-lause, joka tallentaa nykyisen pelitilanteen sql-tietokantaan.
-
+"""
 
 
 
