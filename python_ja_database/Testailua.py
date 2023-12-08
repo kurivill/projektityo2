@@ -1,4 +1,5 @@
 from yhteys import yhteys
+from geopy.distance import geodesic
 from flask import Flask, request, Response
 import json
 import random
@@ -8,7 +9,7 @@ class Player:
         self.nimi = ""
         self.rahat = 1000
         self.sijaintimaa = "Finland"
-        self.sijaintiairport = "Helsinki-Vantaa"
+        self.sijaintiairport = "Helsinki Vantaa Airport"
         self.lentokm = 0
         self.tavoitemaa = ""
         self.vihjeindeksi = 0
@@ -101,6 +102,20 @@ def haevihje(pelaaja, peli):
             pelaaja.rahat -= 100
     return tuloste
 
+def calculateDistance(peli):
+    search1 = f"SELECT latitude_deg, longitude_deg FROM airport"
+    search1 += f" WHERE name = '{peli.lentokentat[peli.listaindeksi]}' AND type = 'large_airport';"
+    peli.listaindeksi += 1
+    search2 = f"SELECT latitude_deg, longitude_deg FROM airport"
+    search2 += f" WHERE name = '{peli.lentokentat[peli.listaindeksi]}' AND type = 'large_airport';"
+    kursori = yhteys.cursor()
+    kursori.execute(search1)
+    tulos1 = kursori.fetchone()
+    kursori.execute(search2)
+    tulos2 = kursori.fetchone()
+    distance = geodesic(tulos1, tulos2).km
+    return distance
+
 
 def vihjeenosto(pelaaja, peli):
     vihje = haevihje(pelaaja, peli)
@@ -129,8 +144,10 @@ def veikkaa(pelaaja, peli):
         print("Congrats. You guessed the right country")
         print("Flying...")
         pelaaja.rahat += 100
-        peli.listaindeksi += 1
         pelaaja.sijaintimaa = pelaaja.tavoitemaa
+        pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
+        matka = calculateDistance(peli)
+        pelaaja.lentokm += matka
         pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
         pelaaja.vihjeindeksi = 0
 
@@ -159,10 +176,13 @@ peli = Game(countries)
 startti(pelaaja, peli)
 print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
 print(f"{peli.maat[5]}, {peli.lentokentat[5]}, {peli.listaindeksi}, {peli.vihjeet[pelaaja.tavoitemaa][0]}")
-"""vihje = haevihje(pelaaja, peli)
-print(vihje)
-print("")
-print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")"""
+veikkaa(pelaaja, peli)
+print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.lentokm}, {pelaaja.tavoitemaa}, {pelaaja.sijaintiairport}")
+print("alla pelin statsit, pitäisi olla 1")
+print(f"{peli.listaindeksi}")
+veikkaa(pelaaja, peli)
+print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.lentokm}, {pelaaja.sijaintiairport}")
+print(f"{peli.listaindeksi} , Luvun pitäisi olla 2")
 
 
 
