@@ -92,25 +92,25 @@ def maat():
     tulos = kursori.fetchall()
     return tulos
 
-
+# Alla testattu ja toimiva flask-funktio, joka päivittää pelaaja-olion nimeksi nettisivun syötteeksi
 
 app = Flask(__name__)
-CORS(app)
+CORS(app) # Huom! Tämä on tärkeä rivi, jotta homma toimii. Flask-cors pitää olla asennettuna
 
-@app.route('/start', methods=['POST'])
+@app.route('/start', methods=['POST']) #methods pitää muistaa, muuten ei toimi
 def startti():
-    pelaaja = Player()
-    print(pelaaja.rahat)
-    data = request.get_json()
-    print(data)
-    pelaaja.nimi = data.get('text')
+    pelaaja = Player() # Oliota ei välttämättä tarvitse tehdä funktion sisällä
+    print(pelaaja.rahat) # testausta varten printattu oliosta jotain.
+    data = request.get_json() # varastoidaan frontista saatu json data-muuttujaan
+    print(data) # printataan saatu data, jotta tiedetään, että frontista tulee jotain
+    pelaaja.nimi = data.get('text') # Tällä saadaan haluttu osa vastausta pythoniin.
     print(pelaaja.nimi)
     vastaus = {
         'nimi': f"{pelaaja.nimi}",
         'rahat': f"{pelaaja.rahat}"
     }
-    response = jsonify(vastaus)
-    return response
+    response = jsonify(vastaus) # Tämä rivi muuttaa sanakirjamuodossa olevan vastauksen jsoniksi
+    return response # palautetaan json-vastaus
 
 
 if __name__ == '__main__':
