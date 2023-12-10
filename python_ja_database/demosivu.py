@@ -3,6 +3,7 @@ from flask import Flask, request, Response, jsonify
 import json
 import random
 from flask_cors import CORS
+from geopy.distance import geodesic
 
 class Player:
     def __init__(self):
@@ -92,6 +93,32 @@ def maat():
     tulos = kursori.fetchall()
     return tulos
 
+def haevihje(pelaaja, peli):
+    tuloste = "" # Tyhjä tuloste
+    for a in peli.maat: # Käydään lista maista läpi. TÄhän on varmaan parempi tapa olemassa.
+        if a == pelaaja.tavoitemaa: # Jos maa on tavoitemaa, siirrytään suoritukseen
+            # tuloste = (countries[päämäärä][vihjeindeksi])
+            tuloste = peli.vihjeet[pelaaja.tavoitemaa][pelaaja.vihjeindeksi] # Tallettaa vihjeen tuloste-muuttujaan
+            pelaaja.vihjeindeksi += 1 # Vihjeindeksi kasvaa, kun oikea vihje tallessa
+            pelaaja.rahat -= 100 # Rahaa lähtee
+    return tuloste # Palauttaa vihjeen stringinä
+
+def calculateDistance(pelaaja, peli):
+    search1 = f"SELECT latitude_deg, longitude_deg FROM airport"
+    search1 += f" WHERE name = '{pelaaja.sijaintiairport}' AND type = 'large_airport';"
+    peli.listaindeksi += 1
+    search2 = f"SELECT latitude_deg, longitude_deg FROM airport"
+    search2 += f" WHERE name = '{peli.lentokentat[peli.listaindeksi]}' AND type = 'large_airport';"
+    kursori = yhteys.cursor()
+    kursori.execute(search1)
+    tulos1 = kursori.fetchone()
+    kursori.execute(search2)
+    tulos2 = kursori.fetchone()
+    distance = geodesic(tulos1, tulos2).km
+    return distance
+
+
+
 pelaaja = Player()
 peli = Game(countries)
 # Alla testattu ja toimiva flask-funktio, joka päivittää pelaaja-olion nimeksi nettisivun syötteeksi
@@ -113,15 +140,105 @@ def startti():
     print(data) # printataan saatu data, jotta tiedetään, että frontista tulee jotain
     pelaaja.nimi = data.get('text') # Tällä saadaan haluttu osa vastausta pythoniin.
     print(pelaaja.nimi)
-    print(peli.maat[3])
-    print(peli.lentokentat[3])
     vastaus = {
         'nimi': f"{pelaaja.nimi}",
         'rahat': f"{pelaaja.rahat}",
+        'sijaintimaa': f"{pelaaja.sijaintimaa}",
         'tavoitemaa': f"{pelaaja.tavoitemaa}"
     }
     response = jsonify(vastaus) # Tämä rivi muuttaa sanakirjamuodossa olevan vastauksen jsoniksi
     return response # palautetaan json-vastaus
+
+
+@app.route('/vihje', methods=['GET'])
+def vihje():
+    print("vihjeen osto havaittu")
+    vihje = haevihje(pelaaja, peli)
+    vihjevastaus = {
+        "vihje": f"{vihje}",
+        "rahat": f"{pelaaja.rahat}"
+    }
+    vihjeresponse = jsonify(vihjevastaus)
+    return vihjeresponse
+
+@app.route('/veikkaa', methods=['POST'])
+def veikkaus():
+    print("saatu funktiokutsu")
+    data = request.get_json()
+    veikkaus = data.get('text')
+    if pelaaja.tavoitemaa == veikkaus:
+        print("veikkaus oikein")
+        pelaaja.rahat += 100
+        pelaaja.vihjeindeksi = 0
+        pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
+        pelaaja.sijaintimaa = pelaaja.tavoitemaa # Pelaajan sijainti vaihtuu tavoitemaaksi
+        lentomatka = calculateDistance(pelaaja, peli) # Pelaajan lentomatka lasketaan. Vihjeindeksi kasvaa funktion sisällä
+        pelaaja.lentokm += lentomatka # pelaajan lentokilometreihin lisätään lentomatka
+        pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+
+        print(f"Rahat. Pitäisi olla 1000: {pelaaja.rahat}"
+              f" sijainti. Pitäisi vaihtua: {pelaaja.sijaintimaa}"
+              f" pelaajan vihjeindeksi. 0?: {pelaaja.vihjeindeksi}"
+              f" pelin listaindeksi. 1?: {peli.listaindeksi}"
+              f" lentokilsat? : {pelaaja.lentokm}")
+
+
+        vastaus = {
+            "vastaus": "Oikein",
+            "rahat": f"{pelaaja.rahat}",
+            "sijainti": f"{pelaaja.sijaintimaa}",
+            "lentokenttä": f"{pelaaja.sijaintiairport}",
+            "tavoitemaa": f"{pelaaja.tavoitemaa}",
+            "lentokilometrit": f"{pelaaja.lentokm}"
+            }
+        veikkausresponse = jsonify(vastaus)
+        return veikkausresponse
+
+    else:
+        if pelaaja.vihjeindeksi == 2:
+            print("vastaus väärin, vihjeet käytetty")
+            pelaaja.sijaintimaa = pelaaja.tavoitemaa
+            pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
+            lentomatka = calculateDistance(pelaaja, peli)
+            pelaaja.lentokm += lentomatka
+            pelaaja.rahat -= 100
+            pelaaja.vihjeindeksi = 0
+
+            pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+
+            print(f"Rahojen pitäisi olla -100 alkuperäisestä: {pelaaja.rahat}")
+            print(f"Lentokilometrit: {pelaaja.lentokm}")
+
+            vastaus = {
+                "Vastaus": "Väärin",
+                "Vihjeet": "Loppu",
+                "Rahat": f"{pelaaja.rahat}",
+                "sijainti": f"{pelaaja.sijaintimaa}",
+                "lentokenttä": f"{pelaaja.sijaintiairport}",
+                "tavoitemaa": f"{pelaaja.tavoitemaa}",
+                "lentokilometrit": f"{pelaaja.lentokm}"
+
+            }
+            veikkausresponse = jsonify(vastaus)
+            return veikkausresponse
+
+        else:
+            print("vastaus väärin, vihjeitä jäljellä")
+            vihje = haevihje(pelaaja, peli)
+            print(f"Vihjeindeksi: {pelaaja.vihjeindeksi}"
+                  f" rahat: {pelaaja.rahat}")
+            vastaus = {
+                "Vastaus": "Väärin",
+                "Vihjeitä": "Jäljellä",
+                "Rahat": f"{pelaaja.rahat}",
+                "Vihje": f"{vihje}"
+            }
+
+            veikkausresponse = jsonify(vastaus)
+            return veikkausresponse
+
+
+
 
 
 if __name__ == '__main__':

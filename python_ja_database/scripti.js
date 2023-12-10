@@ -27,13 +27,70 @@ nappi.addEventListener('click', async function(evt) {
     .then(data => {
       console.log(data.nimi) // Data tulee takaisin json-muodossa, eli siihen pitää viitata oikein
       console.log(data.rahat)
+      console.log(data.sijaintimaa)
       console.log(data.tavoitemaa)
+      document.getElementById("pelaajanimi").textContent = data.nimi
   })
 
     .catch(error => {
       console.error('Error', error);
       });
 })
+
+vihjenappi.addEventListener('click', async function(evt) {
+  const vihjenappi = document.getElementById("vihjenappi")
+  const kohde = document.getElementById("vihje")
+  fetch('http://127.0.0.1:3000/vihje',  {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+
+
+  })
+      .then(response => response.json())
+      .then(data => kohde.textContent = data.vihje)
+
+      .catch(error => {
+      console.error('Error', error);
+      });
+})
+
+
+veikkausnappi.addEventListener('click', async function(evt) {
+  const maaveikkaus = document.getElementById("veikattumaa").value
+  const veikkaustulos = document.getElementById("onkooikein")
+  const statsit = document.getElementById("statsit")
+  fetch('http://127.0.0.1:3000/veikkaa', { //TÄtä voi käyttää pohjana kaikkiin muihin nappeihin
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({'text': maaveikkaus})
+
+  })
+      .then(response => response.json())
+
+      .then(data => {
+        document.getElementById("rahat").textContent = data.rahat
+        document.getElementById("lentokm").textContent = data.lentokilometrit
+        document.getElementById("sijainti").textContent = data.sijainti
+        document.getElementById("tavoitemaa").textContent = data.tavoitemaa
+        console.log(data.sijainti)
+        console.log(data.tavoitemaa)
+        veikkaustulos.textContent = data.vastaus
+        statsit.textContent = data.rahat + ' ' + data.sijainti
+      }
+        )
+      .catch(error => {
+        console.error('Error', error);
+      });
+
+})
+
+
+
+
 
 // ALla olevat on epätoivoisia yrityksiä saada homma toimimaaan. Jätetty muistomerkiksi
 
