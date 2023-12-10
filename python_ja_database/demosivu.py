@@ -180,9 +180,9 @@ def veikkaus():
         pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
 
         print(f"Rahat. Pitäisi olla 1000, jos ekalla oikein: {pelaaja.rahat}"
-              f" sijainti. Pitäisi vaihtua: {pelaaja.sijaintimaa}"
+              f" sijainti. Pitäisi vaihtua suomesta: {pelaaja.sijaintimaa}"
               f" pelaajan vihjeindeksi. 0? : {pelaaja.vihjeindeksi}"
-              f" pelin listaindeksi. 1? : {pelaaja.listaindeksi}"
+              f" pelin listaindeksi ekan siirtymän jälkeen. 1? : {pelaaja.listaindeksi}"
               f" lentokilsat? : {pelaaja.lentokm}")
 
 
@@ -229,7 +229,8 @@ def veikkaus():
             vastaus = {
                 "rahat": f"{pelaaja.rahat}",
                 "vihje": f"{vihje}",
-                "sijainti": f"{pelaaja.sijaintimaa}"
+                "sijainti": f"{pelaaja.sijaintimaa}",
+                "lentokm": f"{pelaaja.lentokm}"
             }
 
             veikkausresponse = jsonify(vastaus)
