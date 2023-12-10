@@ -1,0 +1,35 @@
+"Alla olevan scripti on tämänhetkinen paras muoto siihen, että peli voidaan tallentaa
+Saa tehdä muutoksia, jos huomaa jotain virheitä"
+
+create database projekti2;
+
+use projekti2;
+source "alkuperäinen flight_game filepath, löytyy sieltä tietokantojen moodlesta"
+"muistutuksena, että mariadb on vammainen, ja ne \ pitää vaihtaa /. Muuten homma
+kusee"
+" Eli siis esim source :C/tiedoston/filepath/normikauttaviivoilla"
+SET FOREIGN_KEY_CHECKS = 0;
+drop table game;
+drop table goal;
+drop table goal_reached;
+SET FOREIGN_KEY_CHECKS = 1;
+
+create table player
+(
+name varchar(20) primary key,
+money int,
+country_name varchar(20),
+airport_name varchar(30),
+lentokm int,
+vihjeindeksi int,
+listaindeksi int
+)
+charset = latin1;
+
+create table listat
+(
+maat varchar(40),
+lentokentat varchar(40) primary key,
+kaydyt varchar(40)
+)
+charset = latin1;
