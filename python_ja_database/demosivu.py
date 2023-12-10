@@ -97,6 +97,7 @@ def haevihje(pelaaja, peli):
     tuloste = "" # Tyhjä tuloste
     for a in peli.maat: # Käydään lista maista läpi. TÄhän on varmaan parempi tapa olemassa.
         if a == pelaaja.tavoitemaa: # Jos maa on tavoitemaa, siirrytään suoritukseen
+            # tuloste = (countries[päämäärä][vihjeindeksi])
             tuloste = peli.vihjeet[pelaaja.tavoitemaa][pelaaja.vihjeindeksi] # Tallettaa vihjeen tuloste-muuttujaan
             pelaaja.vihjeindeksi += 1 # Vihjeindeksi kasvaa, kun oikea vihje tallessa
             pelaaja.rahat -= 100 # Rahaa lähtee
@@ -154,22 +155,13 @@ def startti():
 @app.route('/vihje', methods=['GET'])
 def vihje():
     print("vihjeen osto havaittu")
-    if pelaaja.vihjeindeksi >= 2:
-        vihjevastaus = {
-            "vihje": f"You have ran out of clues",
-            "rahat": f"{pelaaja.rahat}"
-        }
-        vihjeresponse = jsonify(vihjevastaus)
-        return vihjeresponse
-    else:
-
-        vihje = haevihje(pelaaja, peli)
-        vihjevastaus = {
-            "vihje": f"{vihje}",
-            "rahat": f"{pelaaja.rahat}"
-        }
-        vihjeresponse = jsonify(vihjevastaus)
-        return vihjeresponse
+    vihje = haevihje(pelaaja, peli)
+    vihjevastaus = {
+        "vihje": f"{vihje}",
+        "rahat": f"{pelaaja.rahat}"
+    }
+    vihjeresponse = jsonify(vihjevastaus)
+    return vihjeresponse
 
 @app.route('/veikkaa', methods=['POST'])
 def veikkaus():
