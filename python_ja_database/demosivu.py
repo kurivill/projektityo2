@@ -14,13 +14,13 @@ class Player:
         self.lentokm = 0
         self.tavoitemaa = ""
         self.vihjeindeksi = 0
+        self.listaindeksi = 0
 
 
 class Game:
     def __init__(self, listasanakirja):
         self.maat = []
         self.lentokentat = []
-        self.listaindeksi = 0
         self.vihjeet = listasanakirja
 
 
@@ -107,7 +107,7 @@ def calculateDistance(pelaaja, peli):
     search1 = f"SELECT latitude_deg, longitude_deg FROM airport"
     search1 += f" WHERE name = '{pelaaja.sijaintiairport}' AND type = 'large_airport';"
     search2 = f"SELECT latitude_deg, longitude_deg FROM airport"
-    search2 += f" WHERE name = '{peli.lentokentat[peli.listaindeksi+1]}' AND type = 'large_airport';"
+    search2 += f" WHERE name = '{peli.lentokentat[pelaaja.listaindeksi+1]}' AND type = 'large_airport';"
     kursori = yhteys.cursor()
     kursori.execute(search1)
     tulos1 = kursori.fetchone()
@@ -136,7 +136,7 @@ def startti():
         peli.maat.append(x[0])
     for y in sqlhaku:
         peli.lentokentat.append(y[1])
-    pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+    pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
     print(pelaaja.rahat) # testausta varten printattu oliosta jotain.
     data = request.get_json() # varastoidaan frontista saatu json data-muuttujaan
     print(data) # printataan saatu data, jotta tiedetään, että frontista tulee jotain
@@ -172,17 +172,17 @@ def veikkaus():
         print("veikkaus oikein")
         pelaaja.rahat += 100
         pelaaja.vihjeindeksi = 0
-        pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
+        pelaaja.sijaintiairport = peli.lentokentat[pelaaja.listaindeksi]
         pelaaja.sijaintimaa = pelaaja.tavoitemaa # Pelaajan sijainti vaihtuu tavoitemaaksi
         lentomatka = calculateDistance(pelaaja, peli) # Pelaajan lentomatka lasketaan.
-        peli.listaindeksi += 1
+        pelaaja.listaindeksi += 1
         pelaaja.lentokm += lentomatka # pelaajan lentokilometreihin lisätään lentomatka
-        pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+        pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
 
         print(f"Rahat. Pitäisi olla 1000, jos ekalla oikein: {pelaaja.rahat}"
               f" sijainti. Pitäisi vaihtua: {pelaaja.sijaintimaa}"
               f" pelaajan vihjeindeksi. 0? : {pelaaja.vihjeindeksi}"
-              f" pelin listaindeksi. 1? : {peli.listaindeksi}"
+              f" pelin listaindeksi. 1? : {pelaaja.listaindeksi}"
               f" lentokilsat? : {pelaaja.lentokm}")
 
 
@@ -200,13 +200,13 @@ def veikkaus():
             print("vastaus väärin, vihjeet käytetty")
             pelaaja.sijaintimaa = pelaaja.tavoitemaa
             lentomatka = calculateDistance(pelaaja, peli)
-            pelaaja.sijaintiairport = peli.lentokentat[peli.listaindeksi]
-            peli.listaindeksi += 1
+            pelaaja.sijaintiairport = peli.lentokentat[pelaaja.listaindeksi]
+            pelaaja.listaindeksi += 1
             pelaaja.lentokm += lentomatka
             pelaaja.rahat -= 100
             pelaaja.vihjeindeksi = 0
 
-            pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
+            pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
 
             print(f"Rahojen pitäisi olla -100 alkuperäisestä: {pelaaja.rahat}")
             print(f"Lentokilometrit: {pelaaja.lentokm}")
