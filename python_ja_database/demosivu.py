@@ -92,6 +92,8 @@ def maat():
     tulos = kursori.fetchall()
     return tulos
 
+pelaaja = Player()
+peli = Game(countries)
 # Alla testattu ja toimiva flask-funktio, joka päivittää pelaaja-olion nimeksi nettisivun syötteeksi
 
 app = Flask(__name__)
@@ -99,15 +101,24 @@ CORS(app) # Huom! Tämä on tärkeä rivi, jotta homma toimii. Flask-cors pitä�
 
 @app.route('/start', methods=['POST']) #methods pitää muistaa, muuten ei toimi
 def startti():
-    pelaaja = Player() # Oliota ei välttämättä tarvitse tehdä funktion sisällä
+    sqlhaku = maat()
+    random.shuffle(sqlhaku)
+    for x in sqlhaku:
+        peli.maat.append(x[0])
+    for y in sqlhaku:
+        peli.lentokentat.append(y[1])
+    pelaaja.tavoitemaa = peli.maat[peli.listaindeksi]
     print(pelaaja.rahat) # testausta varten printattu oliosta jotain.
     data = request.get_json() # varastoidaan frontista saatu json data-muuttujaan
     print(data) # printataan saatu data, jotta tiedetään, että frontista tulee jotain
     pelaaja.nimi = data.get('text') # Tällä saadaan haluttu osa vastausta pythoniin.
     print(pelaaja.nimi)
+    print(peli.maat[3])
+    print(peli.lentokentat[3])
     vastaus = {
         'nimi': f"{pelaaja.nimi}",
-        'rahat': f"{pelaaja.rahat}"
+        'rahat': f"{pelaaja.rahat}",
+        'tavoitemaa': f"{pelaaja.tavoitemaa}"
     }
     response = jsonify(vastaus) # Tämä rivi muuttaa sanakirjamuodossa olevan vastauksen jsoniksi
     return response # palautetaan json-vastaus

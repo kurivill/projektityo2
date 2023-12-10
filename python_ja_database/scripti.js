@@ -27,6 +27,7 @@ nappi.addEventListener('click', async function(evt) {
     .then(data => {
       console.log(data.nimi) // Data tulee takaisin json-muodossa, eli siihen pitää viitata oikein
       console.log(data.rahat)
+      console.log(data.tavoitemaa)
   })
 
     .catch(error => {
