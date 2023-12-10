@@ -76,6 +76,7 @@ veikkausnappi.addEventListener('click', async function(evt) {
         document.getElementById("lentokm").textContent = data.lentokilometrit
         document.getElementById("sijainti").textContent = data.sijainti
         document.getElementById("tavoitemaa").textContent = data.tavoitemaa
+        document.getElementById("nykyvihje").textContent = data.vihje
         console.log(data.sijainti)
         console.log(data.tavoitemaa)
         veikkaustulos.textContent = data.vastaus
