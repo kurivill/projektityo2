@@ -10,7 +10,7 @@ from geopy.distance import geodesic
 class Player:
     def __init__(self):
         self.nimi = ""
-        self.rahat = 100
+        self.rahat = 1000
         self.sijaintimaa = "Finland"
         self.sijaintiairport = "Helsinki Vantaa Airport"
         self.lentokm = 0
