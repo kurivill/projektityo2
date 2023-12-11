@@ -89,6 +89,21 @@ veikkausnappi.addEventListener('click', async function(evt) {
 
 })
 
+tallenna.addEventListener('click', async function(evt) {
+  const tallennusnappi = document.getElementById("tallenna")
+  const vahvistus = document.getElementById("vahvistus")
+  console.log('nyt lähtee käsky')
+  fetch('http://127.0.0.1:3000/tallenna', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+      .then(response => response.json())
+      .then(data => vahvistus.textContent = data.vahvistus)
+
+})
+
 
 
 

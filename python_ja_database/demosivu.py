@@ -17,6 +17,7 @@ class Player:
         self.tavoitemaa = ""
         self.vihjeindeksi = 0
         self.listaindeksi = 0
+        self.veikkausindeksi = 0
 
 
 class Game:
@@ -24,6 +25,7 @@ class Game:
         self.maat = []
         self.lentokentat = []
         self.vihjeet = listasanakirja
+        self.kaydyt = []
 
 
 luxembourghints = ["1. The Second richest country in the world", "2. The name of this country starts with a word from latin, which means “light”", "3. The Smallest country in Benelux"]
@@ -133,6 +135,37 @@ def peliOhi(pelaaja):
         raise SystemExit
     return
 
+def tallennus(pelaaja, peli):
+    kursori = yhteys.cursor()
+    sql1 = f"DELETE FROM player;"
+    kursori.execute(sql1)
+    sql2 = f"DELETE FROM listat;"
+    kursori.execute(sql2)
+    kursori.execute("ALTER TABLE listat AUTO_INCREMENT = 1;")
+
+    sql3 = f"INSERT INTO player(name, money, country_name, airport_name, lentokm, vihjeindeksi, listaindeksi, veikkausindeksi)"
+    sql3 += f" VALUES('{pelaaja.nimi}', {pelaaja.rahat}, '{pelaaja.sijaintimaa}', '{pelaaja.sijaintiairport}', {pelaaja.lentokm}, {pelaaja.vihjeindeksi}, {pelaaja.listaindeksi}, {pelaaja.veikkausindeksi});"
+    kursori.execute(sql3)
+    indeksi = 0
+    kaydytindeksi = 1
+    while indeksi < len(peli.maat):
+        kursori.execute(f"INSERT INTO listat(maat, lentokentat, kaydyt) VALUES('{peli.maat[indeksi]}', '{peli.lentokentat[indeksi]}', 'ei');")
+        indeksi += 1
+        if kaydytindeksi < len(peli.kaydyt):
+            kursori.execute(f"UPDATE listat SET kaydyt = '{peli.kaydyt[kaydytindeksi]}' WHERE  id = {kaydytindeksi};")
+            kaydytindeksi += 1
+
+    """
+    for y in peli.lentokentat:
+        kursori.execute(f"INSERT INTO listat(lentokentat) VALUES('{y}');")
+    for x in peli.maat:
+        kursori.execute(f"INSERT INTO listat(maat) VALUES('{x}');")
+    for z in peli.kaydyt:
+        kursori.execute(f"INSERT INTO listat(kaydyt) VALUES('{z}');")"""
+    yhteys.commit()
+    yhteys.close()
+    return
+
 
 
 pelaaja = Player()
@@ -156,6 +189,7 @@ def startti():
 
     print(peli.maat[0])
     pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
+    peli.kaydyt.append(pelaaja.sijaintimaa)
     print(pelaaja.rahat) # testausta varten printattu oliosta jotain.
     data = request.get_json() # varastoidaan frontista saatu json data-muuttujaan
     print(data) # printataan saatu data, jotta tiedetään, että frontista tulee jotain
@@ -183,13 +217,31 @@ def vihje():
     vihjeresponse = jsonify(vihjevastaus)
     return vihjeresponse
 
+@app.route('/tallenna', methods=['GET'])
+def save():
+    print("tallennuskäsky saatu")
+    tallennus(pelaaja, peli)
+    tallennusvastaus = {
+        "vahvistus": "OK"
+    }
+    tallennusresponse = jsonify(tallennusvastaus)
+    return tallennusresponse
+
+
+
 @app.route('/veikkaa', methods=['POST'])
 def veikkaus():
     print("saatu funktiokutsu")
     data = request.get_json()
     veikkaus = data.get('text')
+    for o in peli.kaydyt:
+        print(o)
     if pelaaja.tavoitemaa == veikkaus:
         print("veikkaus oikein")
+        peli.kaydyt.append(pelaaja.tavoitemaa)
+        print(len(peli.kaydyt))
+        for p in peli.kaydyt:
+            print(p)
         pelaaja.rahat += 100
         pelaaja.vihjeindeksi = 0
         pelaaja.sijaintiairport = peli.lentokentat[pelaaja.listaindeksi]
@@ -257,6 +309,8 @@ def veikkaus():
 
             veikkausresponse = jsonify(vastaus)
             return veikkausresponse
+
+
 
 
 
