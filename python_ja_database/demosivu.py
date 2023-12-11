@@ -153,6 +153,8 @@ def startti():
         peli.maat.append(x[0])
     for y in sqlhaku:
         peli.lentokentat.append(y[1])
+
+    print(peli.maat[0])
     pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
     print(pelaaja.rahat) # testausta varten printattu oliosta jotain.
     data = request.get_json() # varastoidaan frontista saatu json data-muuttujaan

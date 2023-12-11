@@ -28,7 +28,7 @@ nappi.addEventListener('click', async function(evt) {
       console.log(data.nimi) // Data tulee takaisin json-muodossa, eli siihen pitää viitata oikein
       console.log(data.rahat)
       console.log(data.sijaintimaa)
-      console.log(data.tavoitemaa)
+      console.log(data.lentokm)
       document.getElementById("pelaajanimi").textContent = data.nimi
   })
 
