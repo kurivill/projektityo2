@@ -104,6 +104,18 @@ tallenna.addEventListener('click', async function(evt) {
 
 })
 
+jatka.addEventListener('click', async function(evt) {
+  console.log('jatka-nappulaa painettu')
+  fetch('http://127.0.0.1:3000/jatka', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+      .then(response => response.json())
+      .then(data => console.log(data.vahvistus))
+})
+
 
 
 

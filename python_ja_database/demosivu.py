@@ -167,6 +167,35 @@ def tallennus(pelaaja, peli):
     return
 
 
+def jatka(pelaaja, peli):
+    kursori = yhteys.cursor()
+    sql1 = "SELECT * from player;"
+    kursori.execute(sql1)
+    pelaajanstatsit = kursori.fetchall()
+    pelaaja.nimi = pelaajanstatsit[0][0]
+    pelaaja.rahat = pelaajanstatsit[0][1]
+    pelaaja.sijaintimaa = pelaajanstatsit[0][2]
+    pelaaja.sijaintiairport = pelaajanstatsit[0][3]
+    pelaaja.lentokm = pelaajanstatsit[0][4]
+    pelaaja.vihjeindeksi = pelaajanstatsit[0][5]
+    pelaaja.listaindeksi = pelaajanstatsit[0][6]
+    pelaaja.veikkausindeksi = pelaajanstatsit[0][7]
+    sql2 = "SELECT * from listat;"
+    kursori.execute(sql2)
+    pelinstatsit = kursori.fetchall()
+    indeksi = 0
+
+    while indeksi < 36:
+        peli.maat.append(pelinstatsit[indeksi][1])
+        peli.lentokentat.append(pelinstatsit[indeksi][2])
+
+        if len(pelinstatsit[indeksi]) > 2:
+            peli.kaydyt.append(pelinstatsit[indeksi][3])
+
+        indeksi += 1
+    return
+
+
 
 pelaaja = Player()
 peli = Game(countries)
@@ -226,6 +255,21 @@ def save():
     }
     tallennusresponse = jsonify(tallennusvastaus)
     return tallennusresponse
+
+@app.route('/jatka', methods=['GET'])
+def jatkuu():
+    print("jatkamiskäsky saatu")
+    jatka(pelaaja, peli)
+    print(pelaaja.nimi)
+    print(peli.kaydyt[0])
+    jatkamisvahvistus = {
+        "vahvistus": "OK",
+        "nimi": f"{pelaaja.nimi}",
+        "rahat": f"{pelaaja.rahat}",
+        "lentokm": f"{pelaaja.lentokm}"
+    }
+    jatkamisresponse = jsonify(jatkamisvahvistus)
+    return jatkamisresponse
 
 
 
