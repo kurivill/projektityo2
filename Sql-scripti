@@ -22,7 +22,8 @@ country_name varchar(20),
 airport_name varchar(30),
 lentokm int,
 vihjeindeksi int,
-listaindeksi int
+listaindeksi int,
+veikkausindeksi int
 )
 charset = latin1;
 
@@ -33,3 +34,6 @@ lentokentat varchar(40) primary key,
 kaydyt varchar(40)
 )
 charset = latin1;
+
+
+
