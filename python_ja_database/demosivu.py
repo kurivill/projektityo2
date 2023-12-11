@@ -116,6 +116,12 @@ def calculateDistance(pelaaja, peli):
     distance = geodesic(tulos1, tulos2).km
     return distance
 
+def nykyinenSijainti(pelaaja):
+    haku = f"SELECT latitude_deg, longitude_deg FROM airport WHERE name = {pelaaja.sijaintiairport}"
+    kursori = yhteys.cursor()
+    kursori.execute(haku)
+    koordinaatit = kursori.fetchone()
+    return koordinaatit
 
 
 pelaaja = Player()
@@ -175,6 +181,7 @@ def veikkaus():
         pelaaja.sijaintiairport = peli.lentokentat[pelaaja.listaindeksi]
         pelaaja.sijaintimaa = pelaaja.tavoitemaa # Pelaajan sijainti vaihtuu tavoitemaaksi
         lentomatka = calculateDistance(pelaaja, peli) # Pelaajan lentomatka lasketaan.
+        koordinaatit = nykyinenSijainti(pelaaja)
         pelaaja.listaindeksi += 1
         pelaaja.lentokm += lentomatka # pelaajan lentokilometreihin lisätään lentomatka
         pelaaja.tavoitemaa = peli.maat[pelaaja.listaindeksi]
@@ -191,6 +198,7 @@ def veikkaus():
             "rahat": f"{pelaaja.rahat}",
             "sijainti": f"{pelaaja.sijaintimaa}",
             "lentokm": f"{pelaaja.lentokm}",
+            "koordinaatit": f"{koordinaatit}"
             }
         veikkausresponse = jsonify(vastaus)
         return veikkausresponse
