@@ -117,7 +117,7 @@ def calculateDistance(pelaaja, peli):
     return distance
 
 def nykyinenSijainti(pelaaja):
-    haku = f"SELECT latitude_deg, longitude_deg FROM airport WHERE name = {pelaaja.sijaintiairport}"
+    haku = f"SELECT latitude_deg, longitude_deg FROM airport WHERE name = '{pelaaja.sijaintiairport}';"
     kursori = yhteys.cursor()
     kursori.execute(haku)
     koordinaatit = kursori.fetchone()
