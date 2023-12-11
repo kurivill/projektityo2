@@ -166,6 +166,15 @@ def veikkaa(pelaaja, peli):
             pelaaja.vihjeindeksi = 0
 
 
+def nykyinenSijainti(pelaaja):
+    haku = f"SELECT latitude_deg, longitude_deg FROM airport WHERE name = '{pelaaja.sijaintiairport}';"
+    kursori = yhteys.cursor()
+    kursori.execute(haku)
+    koordinaatit = kursori.fetchone()
+    print(koordinaatit)
+    return koordinaatit
+
+
 
 pelaaja = Player()
 peli = Game(countries)
@@ -176,13 +185,9 @@ peli = Game(countries)
 startti(pelaaja, peli)
 print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.tavoitemaa}")
 print(f"{peli.maat[5]}, {peli.lentokentat[5]}, {peli.listaindeksi}, {peli.vihjeet[pelaaja.tavoitemaa][0]}")
-veikkaa(pelaaja, peli)
-print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.lentokm}, {pelaaja.tavoitemaa}, {pelaaja.sijaintiairport}")
-print("alla pelin statsit, pitäisi olla 1")
-print(f"{peli.listaindeksi}")
-veikkaa(pelaaja, peli)
-print(f"{pelaaja.nimi}, {pelaaja.rahat}, {pelaaja.sijaintimaa}, {pelaaja.lentokm}, {pelaaja.sijaintiairport}")
-print(f"{peli.listaindeksi} , Luvun pitäisi olla 2")
+nykyinenSijainti(pelaaja)
+
+
 
 
 

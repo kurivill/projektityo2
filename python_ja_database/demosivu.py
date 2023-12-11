@@ -5,10 +5,12 @@ import random
 from flask_cors import CORS
 from geopy.distance import geodesic
 
+
+
 class Player:
     def __init__(self):
         self.nimi = ""
-        self.rahat = 1000
+        self.rahat = 100
         self.sijaintimaa = "Finland"
         self.sijaintiairport = "Helsinki Vantaa Airport"
         self.lentokm = 0
@@ -101,6 +103,7 @@ def haevihje(pelaaja, peli):
             tuloste = peli.vihjeet[pelaaja.tavoitemaa][pelaaja.vihjeindeksi] # Tallettaa vihjeen tuloste-muuttujaan
             pelaaja.vihjeindeksi += 1 # Vihjeindeksi kasvaa, kun oikea vihje tallessa
             pelaaja.rahat -= 100 # Rahaa lähtee
+            print(pelaaja.rahat)
     return tuloste # Palauttaa vihjeen stringinä
 
 def calculateDistance(pelaaja, peli):
@@ -121,7 +124,15 @@ def nykyinenSijainti(pelaaja):
     kursori = yhteys.cursor()
     kursori.execute(haku)
     koordinaatit = kursori.fetchone()
+    print(koordinaatit)
     return koordinaatit
+
+def peliOhi(pelaaja):
+    if pelaaja.rahat <= 0:
+        print("Peli päättyy")
+        raise SystemExit
+    return
+
 
 
 pelaaja = Player()
@@ -161,6 +172,7 @@ def startti():
 @app.route('/vihje', methods=['GET'])
 def vihje():
     print("vihjeen osto havaittu")
+    peliOhi(pelaaja)
     vihje = haevihje(pelaaja, peli)
     vihjevastaus = {
         "vihje": f"{vihje}",
@@ -198,7 +210,7 @@ def veikkaus():
             "rahat": f"{pelaaja.rahat}",
             "sijainti": f"{pelaaja.sijaintimaa}",
             "lentokm": f"{pelaaja.lentokm}",
-            "koordinaatit": f"{koordinaatit}"
+            "koordinaatit_lat": f"{koordinaatit}"
             }
         veikkausresponse = jsonify(vastaus)
         return veikkausresponse
