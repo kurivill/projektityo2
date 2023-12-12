@@ -189,7 +189,7 @@ def jatka(pelaaja, peli):
         peli.maat.append(pelinstatsit[indeksi][1])
         peli.lentokentat.append(pelinstatsit[indeksi][2])
 
-        if len(pelinstatsit[indeksi]) > 2:
+        if pelinstatsit[indeksi][3] != 'ei':
             peli.kaydyt.append(pelinstatsit[indeksi][3])
 
         indeksi += 1
@@ -262,11 +262,18 @@ def jatkuu():
     jatka(pelaaja, peli)
     print(pelaaja.nimi)
     print(peli.kaydyt[0])
+    palautettavatvihjeet = []
+    indeksi = 0
+    while pelaaja.vihjeindeksi > indeksi:
+        palautettavatvihjeet.append(peli.vihjeet[pelaaja.tavoitemaa][indeksi])
+        indeksi += 1
     jatkamisvahvistus = {
         "vahvistus": "OK",
         "nimi": f"{pelaaja.nimi}",
         "rahat": f"{pelaaja.rahat}",
-        "lentokm": f"{pelaaja.lentokm}"
+        "lentokm": f"{pelaaja.lentokm}",
+        "sijaintimaa": f"{pelaaja.sijaintimaa}",
+        "vihjeet": f"{palautettavatvihjeet}"
     }
     jatkamisresponse = jsonify(jatkamisvahvistus)
     return jatkamisresponse
