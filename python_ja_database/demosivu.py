@@ -137,22 +137,25 @@ def peliOhi(pelaaja):
 
 def tallennus(pelaaja, peli):
     kursori = yhteys.cursor()
-    sql1 = f"DELETE FROM player;"
+    sql1 = f"DELETE FROM player;" # Tyhjentää tietokannan
     kursori.execute(sql1)
     sql2 = f"DELETE FROM listat;"
     kursori.execute(sql2)
-    kursori.execute("ALTER TABLE listat AUTO_INCREMENT = 1;")
-
+    kursori.execute("ALTER TABLE listat AUTO_INCREMENT = 1;") # resetoi listat-taulun indeksin
+    # Allaoleva syöttää pelaajan tiedot tietokantaan. Tulee siis 1 rivi.
     sql3 = f"INSERT INTO player(name, money, country_name, airport_name, lentokm, vihjeindeksi, listaindeksi, veikkausindeksi)"
     sql3 += f" VALUES('{pelaaja.nimi}', {pelaaja.rahat}, '{pelaaja.sijaintimaa}', '{pelaaja.sijaintiairport}', {pelaaja.lentokm}, {pelaaja.vihjeindeksi}, {pelaaja.listaindeksi}, {pelaaja.veikkausindeksi});"
     kursori.execute(sql3)
-    indeksi = 0
-    kaydytindeksi = 1
+    indeksi = 0 # Indeksi maat ja lentokentat-sarakkeiden täyttämistä varten
+    kaydytindeksi = 1 # Indeksi kaydyt-listan ja kaydyt-sarakkeen täyttämistä varten.
+    kursori.execute(f"INSERT INTO listat(maat, lentokentat, kaydyt) VALUES ('Finland', 'Helsinki Vantaa Airport', 'Finland');")
+    # Syötetään ylläolevalla lauseella ekaksi riviksi suomen tiedot sinne tietokantaan
     while indeksi < len(peli.maat):
+    # Allaoleva rivi syöttää listat-tauluun ne maat ja lentokentät. Tulee siis 37 riviä tietoa
         kursori.execute(f"INSERT INTO listat(maat, lentokentat, kaydyt) VALUES('{peli.maat[indeksi]}', '{peli.lentokentat[indeksi]}', 'ei');")
         indeksi += 1
-        if kaydytindeksi < len(peli.kaydyt):
-            kursori.execute(f"UPDATE listat SET kaydyt = '{peli.kaydyt[kaydytindeksi]}' WHERE  id = {kaydytindeksi};")
+        if kaydytindeksi < len(peli.kaydyt): # Kaydyt-listassa on siis suomi, kun käynnistetään peli. Se ei tule sinne listaan, jos vaan jatkaa
+            kursori.execute(f"UPDATE listat SET kaydyt = '{peli.kaydyt[kaydytindeksi]}' WHERE  id = {kaydytindeksi+1};")
             kaydytindeksi += 1
 
     """
@@ -163,7 +166,6 @@ def tallennus(pelaaja, peli):
     for z in peli.kaydyt:
         kursori.execute(f"INSERT INTO listat(kaydyt) VALUES('{z}');")"""
     yhteys.commit()
-    yhteys.close()
     return
 
 
@@ -183,14 +185,16 @@ def jatka(pelaaja, peli):
     sql2 = "SELECT * from listat;"
     kursori.execute(sql2)
     pelinstatsit = kursori.fetchall()
-    indeksi = 0
+    indeksi = 1 # TÄmä sitä varten, että skipataan suomi, kun tehdään maa- ja lentokentat-listat
+    jatkuukaydyt = 0 # TÄllä voidaan sitten viitata niin, että saadaan suomi kaydyt-listaan
 
-    while indeksi < 36:
+    while indeksi < 37:
         peli.maat.append(pelinstatsit[indeksi][1])
         peli.lentokentat.append(pelinstatsit[indeksi][2])
 
         if pelinstatsit[indeksi][3] != 'ei':
-            peli.kaydyt.append(pelinstatsit[indeksi][3])
+            peli.kaydyt.append(pelinstatsit[jatkuukaydyt][3])
+            jatkuukaydyt += 1
 
         indeksi += 1
     return
@@ -249,6 +253,7 @@ def vihje():
 @app.route('/tallenna', methods=['GET'])
 def save():
     print("tallennuskäsky saatu")
+    print(f"{peli.kaydyt[0]}")
     tallennus(pelaaja, peli)
     tallennusvastaus = {
         "vahvistus": "OK"
@@ -262,6 +267,7 @@ def jatkuu():
     jatka(pelaaja, peli)
     print(pelaaja.nimi)
     print(peli.kaydyt[0])
+    print(peli.kaydyt[1])
     palautettavatvihjeet = []
     indeksi = 0
     while pelaaja.vihjeindeksi > indeksi:
